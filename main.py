@@ -39,7 +39,7 @@ class Fx_Obj:
     def to_f_statement(self, rate):
         return "{}%".format("%.2f" % rate)
 
-    def send_email(self):
+    def send_email(self, use587=True):
         sent_from = os.getenv('sender')
         to = [os.getenv("receiver")]
 
@@ -64,19 +64,29 @@ class Fx_Obj:
         body_text = MIMEText(body, 'plain') 
         msg.attach(body_text)
 
-
-        try:
-            context = ssl.create_default_context()
-            smtp_server = smtplib.SMTP('smtp.gmail.com', 587)
-            smtp_server.ehlo()
-            smtp_server.starttls(context=context)
-            smtp_server.ehlo()
-            smtp_server.login(sent_from, password)
-            smtp_server.sendmail(sent_from, to, msg.as_string())
-            smtp_server.close()
-            print ("Email sent successfully!")
-        except Exception as ex:
-            print ("Something went wrong….",ex)
+        if use587:
+            try:
+                context = ssl.create_default_context()
+                smtp_server = smtplib.SMTP('smtp.gmail.com', 587)
+                smtp_server.ehlo()
+                smtp_server.starttls(context=context)
+                smtp_server.ehlo()
+                smtp_server.login(sent_from, password)
+                smtp_server.sendmail(sent_from, to, msg.as_string())
+                smtp_server.close()
+                print ("Email sent successfully!")
+            except Exception as ex:
+                print ("Something went wrong….",ex)
+        else:
+            try:
+                smtp_server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+                smtp_server.ehlo()
+                smtp_server.login(sent_from, password)
+                smtp_server.sendmail(sent_from, to, msg.as_string())
+                smtp_server.close()
+                print ("Email sent successfully!")
+            except Exception as ex:
+                print ("Something went wrong….",ex)
 
 f = Fx_Obj()
 f.send_email()
